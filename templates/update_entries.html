@@ -1,0 +1,35 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BNDS-Python</title>
+    <link rel=stylesheet type=text/css href="../static/style.css">
+</head>
+<body>
+<div class=page>
+  <h1>BNDS-Python</h1>
+  <div class=metanav>
+      {% if not session.logged_in %}
+    <a href="{{ url_for('login') }}">log in</a>
+      {% else %}s
+    <a href="{{ url_for('logout') }}">log out</a>
+      {% endif %}
+  </div>
+
+  {% if session.logged_in %}
+    <form action="{{ url_for('dbmanager.update_entry') }}" method=post class=add-entry>
+      {% if entry %}
+      <dl>
+        <dt>Title:
+        <dd><input type=text size=30 name=title value={{entry.title}}><span style="display:none"><input type=text name=eid readonly="true" value={{entry.e_id}}></span>
+        <dt>Text:
+        <dd><textarea name=text rows=5 cols=40>{{entry.text}}</textarea>
+        <dd><input type=submit value="修改">
+      </dl>
+      {% else %}
+      <div>Unbelievable.  No entries here so far</div>
+      {% endif %}
+    </form>
+  {% endif %}
+</div>
+</body>
+</html>

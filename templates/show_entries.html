@@ -1,0 +1,43 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BNDS Python</title>
+    <link rel="stylesheet" type="text/css" href="../static/style.css">
+</head>
+<body>
+    <div class="page">
+       <h1>BNDS-Python</h1>
+            <div class="metanav">
+                    {% if not session.logged_in %}
+                <a href="{{ url_for('login') }}">log in</a>
+                    {% else %}
+                <a href="{{ url_for('logout') }}">log out</a>
+                 {% endif %}
+            </div>
+
+
+        <form action="{{ url_for('dbmanager.add_entry') }}" method="post" class="add-entry">
+            <dl>
+                <dt>Title</dt>
+                <dd><input type="text" size="30" name="title"></dd>
+                <dt>Text</dt>
+                <dd><textarea name="text" rows="5" cols="40"></textarea></dd>
+                <dd><input type="submit" value="Share"></dd>
+            </dl>
+        </form>
+        <ul class="entries">
+            {% for entry in entries %}
+             <li><h2>{{ entry.title }}</h2>{{ entry.text|safe }}
+                 <span><form action="{{ url_for('dbmanager.gotoupdate',eid=entry.e_id)}}" method="post" class="delete-entry"> <input type="submit" value="修改"/></form></span>
+                <span><form action="{{ url_for('dbmanager.delete_entry', eid=entry.e_id) }}" method="post" class="delete-entry"><input type="submit" value="删除"/></form></span>
+             </li>
+
+            {% else %}
+            <li><em>Unbelievable.  No entries here so far</em> </li>
+            {% endfor %}
+        </ul>
+
+
+    </div>
+</body>
+</html>

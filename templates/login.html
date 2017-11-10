@@ -1,0 +1,29 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BNDS Python</title>
+    <link rel="stylesheet" type="text/css" href="../static/style.css">
+</head>
+<body>
+    <div class="page">
+        <h1>BNDS Python</h1>
+
+        <div class="metanav">
+            <a href="">Go to Guestbook</a>
+        </div>
+
+        <h2>Login</h2>
+        {% if error %}<p class="error"><strong>Error:</strong>{{ error }}{% endif %}</p>
+        <form action="{{ url_for('login') }}" method="post">
+            <dl>
+                <dt>Username</dt>
+                <dd><input type="text" name="username"></dd>
+                <dt>Password</dt>
+                <dd><input type="password" name="password"></dd>
+                <dd><input type="submit" name="login"></dd>
+            </dl>
+        </form>
+    </div>
+
+</body>
+</html>
