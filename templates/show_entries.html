@@ -1,43 +1,102 @@
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>BNDS Python</title>
     <link rel="stylesheet" type="text/css" href="../static/style.css">
+    <link rel="stylesheet" type="text/css" href="../static/semantic.css">
+    <script type="text/javascript" src="../static/semantic.js"></script>
 </head>
+
 <body>
-    <div class="page">
-       <h1>BNDS-Python</h1>
-            <div class="metanav">
-                    {% if not session.logged_in %}
-                <a href="{{ url_for('login') }}">log in</a>
-                    {% else %}
-                <a href="{{ url_for('logout') }}">log out</a>
-                 {% endif %}
+    <div class="ui container">
+        <div class="ui secondary menu">
+            <a class="header item">
+            VexBoard
+            </a>
+            <a class="item active">
+            Home
+            </a>
+
+            <div class="right menu">
+                {% if not session.logged_in %}
+                <a class="ui item" href="{{ url_for('login') }}">log in</a> {% else %}
+                <a class="ui item" href="{{ url_for('logout') }}">log out</a> {% endif %}
+
+            </div>
+        </div>
+        <div class="ui two column centered grid">
+            <div class="column">
+                <div class="ui piled segment">
+                    <h2 class="ui header">Publish</h2> {% if error %}
+                    <p class="error"><strong>Error:</strong>{{ error }}{% endif %}</p>
+                    <form action="{{ url_for('dbmanager.add_entry') }}" method="post">
+                        <center>
+                            <div class="ui labeled input">
+                                <div class="ui label">
+                                    Title
+                                </div>
+                                <input type="text" name="title" placeholder="Enter your title">
+                            </div>
+                            <br>
+                            <br>
+                            <div class="ui labeled input">
+                                <div class="ui label">
+                                    Text
+                                </div>
+                                <input type="text" name="text" placeholder="Enter you content">
+                            </div>
+                            <br>
+                            <br>
+                            <input class="ui button" type="submit" name="Share">
+                        </center>
+                    </form>
+                </div>
             </div>
 
+        </div>
+        <div class="ui four column centered grid">
+            <div class="column">
+                <div class="ui cards">
+                    {% for entry in entries %}
+                <div class="ui card">
+                    <div class="content">
+                        <div class="header">
+                            {{ entry.title }}
+                        </div>
+                        <div class="description">
+                            {{ entry.text|safe }}
+                        </div>
+                    </div>
+                    <div class="extra content">
+                        <div class="ui two column centered grid">
+                            <div class="column">
+                                <form action="{{ url_for('dbmanager.gotoupdate',eid=entry.e_id)}}" method="post">
+                                    <input class="circular medium ui button" type="submit" value="Edit" />
+                                </form>
+                            </div>
+                            <div class="column">
+                                <form action="{{ url_for('dbmanager.delete_entry', eid=entry.e_id) }}" method="post">
+                                    <input class="circular medium ui button" type="submit" value="Delete" />
+                                </form>
+                            </div>
+                        </div>
 
-        <form action="{{ url_for('dbmanager.add_entry') }}" method="post" class="add-entry">
-            <dl>
-                <dt>Title</dt>
-                <dd><input type="text" size="30" name="title"></dd>
-                <dt>Text</dt>
-                <dd><textarea name="text" rows="5" cols="40"></textarea></dd>
-                <dd><input type="submit" value="Share"></dd>
-            </dl>
-        </form>
-        <ul class="entries">
-            {% for entry in entries %}
-             <li><h2>{{ entry.title }}</h2>{{ entry.text|safe }}
-                 <span><form action="{{ url_for('dbmanager.gotoupdate',eid=entry.e_id)}}" method="post" class="delete-entry"> <input type="submit" value="修改"/></form></span>
-                <span><form action="{{ url_for('dbmanager.delete_entry', eid=entry.e_id) }}" method="post" class="delete-entry"><input type="submit" value="删除"/></form></span>
-             </li>
 
-            {% else %}
-            <li><em>Unbelievable.  No entries here so far</em> </li>
-            {% endfor %}
-        </ul>
+                    </div>
+                </div>
+                </div>
 
 
+                    {% else %}
+                    <div class="ui segment">
+                        <em>Unbelievable.  No entries here so far</em> </li>
+                    </div>
+                    {% endfor %}
+
+            </div>
+        </div>
     </div>
 </body>
+
 </html>
