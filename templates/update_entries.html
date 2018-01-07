@@ -1,35 +1,79 @@
+
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <title>BNDS-Python</title>
-    <link rel=stylesheet type=text/css href="../static/style.css">
+    <title>Edit|VexBoard</title>
+    <link rel="stylesheet" type="text/css" href="../static/style.css">
+    <link rel="stylesheet" type="text/css" href="../static/semantic.css">
+    <script type="text/javascript" src="../static/semantic.js"></script>
 </head>
-<body>
-<div class=page>
-  <h1>BNDS-Python</h1>
-  <div class=metanav>
-      {% if not session.logged_in %}
-    <a href="{{ url_for('login') }}">log in</a>
-      {% else %}s
-    <a href="{{ url_for('logout') }}">log out</a>
-      {% endif %}
-  </div>
 
-  {% if session.logged_in %}
-    <form action="{{ url_for('dbmanager.update_entry') }}" method=post class=add-entry>
-      {% if entry %}
-      <dl>
-        <dt>Title:
-        <dd><input type=text size=30 name=title value={{entry.title}}><span style="display:none"><input type=text name=eid readonly="true" value={{entry.e_id}}></span>
-        <dt>Text:
-        <dd><textarea name=text rows=5 cols=40>{{entry.text}}</textarea>
-        <dd><input type=submit value="修改">
-      </dl>
-      {% else %}
-      <div>Unbelievable.  No entries here so far</div>
-      {% endif %}
-    </form>
-  {% endif %}
+<body>
+<div class="ui container">
+    <div class="ui secondary menu">
+        <a class="header item" href="{{ url_for('dbmanager.show_entries') }}">
+            VexBoard
+        </a>
+        <a class="item active" href="{{ url_for('dbmanager.show_entries') }}">
+            Home
+        </a>
+
+        <div class="right menu">
+            {% if current_user.is_authenticated %}
+            <p class="ui item">Hi {{ current_user.id }}! </p> <a class="ui item" href="{{ url_for('logout') }}">log
+            out</a>
+            {% else %}
+            <a class="ui item" href="{{ url_for('login') }}">log in</a>
+            {% endif %}
+
+        </div>
+    </div>
+    {% if current_user.is_authenticated %}
+    <!--<div class="ui two column centered grid">-->
+    <!--<div class="column">-->
+    <div class="ui piled segment">
+        <h2 class="ui header">Edit</h2> {% if error %}
+        <p class="error"><strong>Error:</strong>{{ error }}{% endif %}</p>
+        <form class="ui form" action="{{ url_for('dbmanager.update_entry') }}" method="post">
+
+            {% if entry %}
+            <div class="ui labeled input">
+                <div class="ui label">
+                    Title
+                </div>
+                <input type="text" name="title" value={{entry.title}} placeholder="Enter your title">
+                <span style="display:none"><input type=text name=eid readonly="true" value={{entry.e_id}}></span>
+            </div>
+            <br>
+            <br>
+            <div class="field">
+                <textarea name="text" placeholder="Enter you content">{{entry.text}}</textarea>
+            </div>
+            <!--<div class="ui labeled input">-->
+            <!--<div class="ui label">-->
+            <!--Text-->
+            <!--</div>-->
+            <!--<input type="text" name="text" placeholder="Enter you content">-->
+            <!--</div>-->
+            <br>
+            <br>
+            <center>
+                <input class="ui button" type="submit" name="Submit">
+                {% else %}
+                <div class="ui segment">
+                    <em>Unbelievable. No entries here so far</em> </li>
+                </div>
+                {% endif %}
+            </center>
+        </form>
+    </div>
+    <!--</div>-->
+
+    <!--</div>-->
+    {% endif %}
+
 </div>
 </body>
+
 </html>

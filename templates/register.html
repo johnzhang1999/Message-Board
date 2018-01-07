@@ -1,0 +1,61 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register|VexBoard</title>
+    <link rel="stylesheet" type="text/css" href="../static/style.css">
+    <link rel="stylesheet" type="text/css" href="../static/semantic.css">
+    <script type="text/javascript" src="../static/semantic.js"></script>
+</head>
+<body>
+<div class="ui container">
+    <div class="ui secondary menu">
+        <a class="header item" href="{{ url_for('dbmanager.show_entries') }}">
+            VexBoard
+        </a>
+        <a class="item active" href="{{ url_for('dbmanager.show_entries') }}">
+            Home
+        </a>
+
+        <div class="right menu">
+            <div class="right menu">
+
+                {% if not session.logged_in %}
+                <a class="ui item" href="{{ url_for('login') }}">log in</a>
+                {% else %}s
+                <a href="{{ url_for('logout') }}">log out</a>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+    <div class="ui two column centered grid">
+        <div class="column">
+            <div class="ui piled segment">
+                <h2 class="ui header">Register</h2>
+                {% if error %}
+                <p class="error"><strong>Error: </strong>{{ error }}{% endif %}</p>
+                <form action="{{ url_for('register') }}" method="post">
+                    <center>
+                        <div class="ui labeled input">
+                            <div class="ui label">
+                                Username
+                            </div>
+                            <input type="text" name="username" placeholder="Enter your username">
+                        </div>
+                        <br><br>
+                        <div class="ui labeled input">
+                            <div class="ui label">
+                                Password
+                            </div>
+                            <input type="password" name="password" placeholder="Enter you password">
+                        </div>
+                        <br><br>
+                        <input class="ui button" type="submit" name="register">
+                    </center>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
