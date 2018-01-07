@@ -1,36 +1,138 @@
-from flask import Flask,make_response,redirect,abort,g,render_template,request,session,flash,url_for
+import flask
 from werkzeug.utils import find_modules, import_string
 import os
-app = Flask(__name__)
+import flask_login as fl
+import sqlite3
+import hashlib
+
+# from  wtforms import *
+
+bp = flask.Blueprint('usermanager', __name__)
+app = flask.Flask(__name__)
 app.config.update(dict(
     DATABASE = os.path.join(app.root_path, 'entries.sqlite'),
+    USER_DATABASE=os.path.join(app.root_path, 'users.sqlite'),
     DEBUG = True,
     SECRET_KEY = '123456',
-    USERNAME = 'admin',
-    PASSWORD = 'default'
 ))
+
+login_manager = fl.LoginManager()
+login_manager.init_app(app)
+
+
+# Mock database, change to sqlite later
+# users = {'foo@bar.tld': {'password': 'hi'}}
+
+class User(fl.UserMixin):
+    pass
+
+
+@login_manager.user_loader
+def user_loader(username):
+    user = query_db('select * from users where username = ?',
+                    [username], one=True)
+    if user is None:
+        return
+    user = User()
+    user.id = username
+    return user
+
+
+@login_manager.request_loader
+def request_loader(request):
+    username = request.form.get('username')
+    the_user = query_db('select * from users where username = ?',
+                        [username], one=True)
+    if the_user is None:
+        return
+
+    user = User()
+    user.id = username
+
+    # DO NOT ever store passwords in plaintext and always compare password
+    # hashes using constant-time comparison!
+    the_password = hashlib.sha256()
+    the_password.update(flask.request.form['password'].encode('utf-8'))
+    if the_password.hexdigest() != the_user[2]:
+        return
+    # user.is_authenticated = (request.form['password'] == the_user[2])
+
+    return user
+
+
+def get_db():
+    db = getattr(flask.g, '_database', None)
+    if db is None:
+        db = flask.g._database = sqlite3.connect(flask.current_app.config['USER_DATABASE'])
+    return db
+    db.row_factory = sqlite3.Row
+
+
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(flask.g, '_database', None)
+    if db is not None:
+        db.close()
+
+
+def query_db(query, args=(), one=False):
+    cur = get_db().execute(query, args)
+    rv = cur.fetchall()
+    cur.close()
+    return (rv[0] if rv else None) if one else rv
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    error = None
+    the_password = hashlib.sha256()
+    if flask.request.method == 'POST':
+        the_username = flask.request.form['username']
+        the_password.update(flask.request.form['password'].encode('utf-8'))
+        user = query_db('select * from users where username = ?',
+                        [the_username], one=True)
+        if user is not None:
+            error = 'Username already exist'
+        else:
+            db = get_db()
+            db.execute('INSERT INTO users (username, password) VALUES (?, ?)', [the_username, the_password.hexdigest()])
+            db.commit()
+            user = User()
+            user.id = the_username
+            fl.login_user(user)
+            flask.flash(user.id)
+            flask.flash("success!")
+            return flask.redirect(flask.url_for('dbmanager.show_entries'))
+    return flask.render_template('register.html', error=error)
 
 
 @app.route('/login', methods = ['GET','POST'])
 def login():
     error = None
-    if request.method == 'POST':
-        if request.form['username'] != app.config['USERNAME']:
-            error = 'Invalid username'
-        elif request.form['password'] != app.config['PASSWORD']:
-            error = 'Invalid password'
+    the_password = hashlib.sha256()
+    if flask.request.method == 'POST':
+        the_username = flask.request.form['username']
+        the_password.update(flask.request.form['password'].encode('utf-8'))
+        user = query_db('select * from users where username = ?',
+                        [the_username], one=True)
+        if user is None:
+            error = 'No such user'
+        elif user[2] != the_password.hexdigest():
+            error = 'Incorrect username or password'
         else:
-            session['logged_in'] = True
-            flash('You were logged in')
-            # return render_template('show_entries.html')
-            return redirect(url_for('dbmanager.show_entries'))
-    return render_template('login.html', error=error)
+            user = User()
+            user.id = the_username
+            fl.login_user(user)
+            return flask.redirect(flask.url_for('dbmanager.show_entries'))
+    return flask.render_template('login.html', error=error)
+
 
 @app.route('/logout')
+@fl.login_required
 def logout():
-    session.pop('logged_in', None)
-    flash('You were logged out')
-    return redirect(url_for('dbmanager.show_entries'))
+    fl.logout_user()
+    flask.flash('You were logged out')
+    return flask.redirect(flask.url_for('login'))
 
 def register_blueprints(app):
     for name in find_modules('blueprints'):
@@ -40,9 +142,10 @@ def register_blueprints(app):
     return None
 register_blueprints(app)
 
-@app.route('/show_entries')
-def show_entries():
-    return render_template('show_entries.html')
+# @app.route('/show_entries')
+# @fl.login_required
+# def show_entries():
+#     return flask.render_template('show_entries.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
