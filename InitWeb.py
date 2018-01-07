@@ -3,6 +3,7 @@ from werkzeug.utils import find_modules, import_string
 import os
 import flask_login as fl
 import sqlite3
+import hashlib
 
 # from  wtforms import *
 
@@ -50,8 +51,9 @@ def request_loader(request):
 
     # DO NOT ever store passwords in plaintext and always compare password
     # hashes using constant-time comparison!
-
-    if request.form['password'] != the_user[2]:
+    the_password = hashlib.sha256()
+    the_password.update(flask.request.form['password'].encode('utf-8'))
+    if the_password.hexdigest() != the_user[2]:
         return
     # user.is_authenticated = (request.form['password'] == the_user[2])
 
@@ -83,17 +85,17 @@ def query_db(query, args=(), one=False):
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     error = None
+    the_password = hashlib.sha256()
     if flask.request.method == 'POST':
         the_username = flask.request.form['username']
-        the_password = flask.request.form['password']
+        the_password.update(flask.request.form['password'].encode('utf-8'))
         user = query_db('select * from users where username = ?',
                         [the_username], one=True)
-        print(user)
         if user is not None:
             error = 'Username already exist'
         else:
             db = get_db()
-            db.execute('INSERT INTO users (username, password) VALUES (?, ?)', [the_username, the_password])
+            db.execute('INSERT INTO users (username, password) VALUES (?, ?)', [the_username, the_password.hexdigest()])
             db.commit()
             user = User()
             user.id = the_username
@@ -107,14 +109,15 @@ def register():
 @app.route('/login', methods = ['GET','POST'])
 def login():
     error = None
+    the_password = hashlib.sha256()
     if flask.request.method == 'POST':
         the_username = flask.request.form['username']
-        the_password = flask.request.form['password']
+        the_password.update(flask.request.form['password'].encode('utf-8'))
         user = query_db('select * from users where username = ?',
                         [the_username], one=True)
         if user is None:
             error = 'No such user'
-        elif user[2] != the_password:
+        elif user[2] != the_password.hexdigest():
             error = 'Incorrect username or password'
         else:
             user = User()
