@@ -1,5 +1,5 @@
 # VexBoard
-A message board built from Python Flask.   
+A notepad built from Python Flask.   
 ## Required Modules
 flask, flask_login, sqlite3   
 ## Author
